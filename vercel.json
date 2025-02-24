@@ -1,19 +1,17 @@
 {
   "version": 2,
+  "framework": "vite",
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist/spa"
+        "distDir": "dist/spa",
+        "zeroConfig": true
       }
     }
   ],
   "routes": [
-    {
-      "src": "/site/(.*)",
-      "dest": "/site/index.html"
-    },
     {
       "handle": "filesystem"
     },
