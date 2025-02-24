@@ -7,6 +7,7 @@ import {
 } from 'vue-router'
 import routes from './routes'
 import { supabase } from '../services/supabase'
+import App from '../App.vue'
 
 // Escuchar cambios en la autenticación
 supabase.auth.onAuthStateChange((event, session) => {
@@ -47,6 +48,12 @@ export default defineRouter(function () {
       console.error('Error obteniendo sesión:', error)
       next('/login')
     }
+  })
+
+  Router.addRoute({
+    path: '/',
+    component: App,
+    children: routes,
   })
 
   return Router
