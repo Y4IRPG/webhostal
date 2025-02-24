@@ -108,7 +108,7 @@
                     col.name === 'nacionalidad' ||
                     col.name === 'procedencia' ||
                     (mostrarTodos && col.name === 'fecha_reserva') ||
-                    (mostrarTodos && col.name === 'tipo_reserva')
+                    (mostrarTodos && col.name === 'tipo_r')
                   "
                 >
                   {{ col.label }}
@@ -426,7 +426,7 @@ export default {
       { name: 'numero_habitacion', label: 'Habitación', field: 'numero_habitacion', align: 'left' },
       { name: 'fecha_reserva', label: 'Reservó para', field: 'fecha_reserva', align: 'left' },
       { name: 'estado', label: 'Estado', field: 'estado', align: 'left' },
-      { name: 'tipo_reserva', label: 'Tipo de Reserva', field: 'tipo_reserva', align: 'left' }, // Nueva columna
+      { name: 'tipo_r', label: 'Tipo de Reserva', field: 'tipo_r', align: 'left' }, // Actualizar columna
       { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' },
     ]
 
@@ -454,9 +454,9 @@ export default {
         headerSlot: 'fecha-header',
       },
       {
-        name: 'tipo_reserva',
+        name: 'tipo_r',
         label: 'Tipo de Reserva',
-        field: 'tipo_reserva',
+        field: 'tipo_r',
         align: 'left',
         headerSlot: 'tipo-reserva-header',
       },
@@ -464,14 +464,15 @@ export default {
 
     const fetchReservas = async () => {
       loading.value = true
-      const { data, error } = await supabase.from('reservas').select(`
+      try {
+        const { data, error } = await supabase.from('reservas').select(`
           id,
           cliente_id,
           habitacion_id,
           fecha_reserva,
           fecha_entrada,
           fecha_salida,
-          tipo_reserva,
+          tipo_r,
           clientes:cliente_id (
             documento_identidad,
             nombres,
@@ -493,9 +494,11 @@ export default {
           )
         `)
 
-      if (error) {
-        console.error('Error cargando reservas:', error)
-      } else {
+        if (error) {
+          console.error('Error cargando reservas:', error)
+          return
+        }
+
         reservas.value = data.map((reserva) => ({
           id: reserva.id,
           cliente_id: reserva.cliente_id,
@@ -503,7 +506,7 @@ export default {
           fecha_reserva: reserva.fecha_reserva,
           fecha_entrada: reserva.fecha_entrada,
           fecha_salida: reserva.fecha_salida,
-          tipo_reserva: reserva.tipo_reserva,
+          tipo_r: reserva.tipo_r,
           documento_identidad: reserva.clientes?.documento_identidad || '',
           nombres: reserva.clientes?.nombres || '',
           apellidos: reserva.clientes?.apellidos || '',
@@ -517,8 +520,11 @@ export default {
           estado: reserva.habitaciones?.estado || '',
           precio: reserva.habitaciones?.tipos_habitacion?.precio || 0,
         }))
+      } catch (error) {
+        console.error('Error cargando reservas:', error)
+      } finally {
+        loading.value = false
       }
-      loading.value = false
     }
 
     const fetchNacionalidades = async () => {
@@ -583,7 +589,7 @@ export default {
       }
 
       if (filtroTipoReserva.value) {
-        filtered = filtered.filter((reserva) => reserva.tipo_reserva === filtroTipoReserva.value)
+        filtered = filtered.filter((reserva) => reserva.tipo_r === filtroTipoReserva.value) // Actualizar filtro
       }
 
       return filtered
@@ -594,7 +600,8 @@ export default {
       const mapaReservas = new Map()
 
       reservasFiltradas.value.forEach((reserva) => {
-        if (reserva.tipo_reserva === 'pernoctacion') {
+        if (reserva.tipo_r === 'pernoctacion') {
+          // Actualizar agrupación
           const key = `${reserva.cliente_id}-${reserva.habitacion_id}`
           if (!mapaReservas.has(key)) {
             mapaReservas.set(key, {
@@ -778,7 +785,7 @@ export default {
         // Actualizar la reserva actual a 'pernoctacion'
         const { error: updateError } = await supabase
           .from('reservas')
-          .update({ tipo_reserva: 'pernoctacion' })
+          .update({ tipo_r: 'pernoctacion' }) // Actualizar columna
           .eq('id', reserva.id)
         if (updateError) {
           console.error('Error actualizando la reserva:', updateError)
@@ -792,7 +799,7 @@ export default {
           cliente_id: reserva.cliente_id,
           habitacion_id: reserva.habitacion_id,
           fecha_reserva: nuevaFechaReserva.toISOString().split('T')[0],
-          tipo_reserva: 'pernoctacion',
+          tipo_r: 'pernoctacion', // Actualizar columna
           fecha_entrada: reserva.fecha_entrada, // Copiar la fecha de entrada
         }
         const { error } = await supabase.from('reservas').insert([nuevaReserva]).select()
@@ -829,7 +836,7 @@ export default {
         filtroProcedenciaVisible.value = true
       } else if (colName === 'fecha_reserva') {
         filtroFechaVisible.value = true
-      } else if (colName === 'tipo_reserva') {
+      } else if (colName === 'tipo_r') {
         filtroTipoReservaVisible.value = true
       }
     }
@@ -841,7 +848,7 @@ export default {
           (!filtroProcedencia.value || reserva.procedencia === filtroProcedencia.value) &&
           (!filtroFecha.value || reserva.fecha_reserva === filtroFecha.value) &&
           (!filtroMes.value || reserva.fecha_reserva.substr(0, 7) === filtroMes.value) &&
-          (!filtroTipoReserva.value || reserva.tipo_reserva === filtroTipoReserva.value)
+          (!filtroTipoReserva.value || reserva.tipo_r === filtroTipoReserva.value)
         )
       })
     }
