@@ -177,9 +177,20 @@
           </div>
           <div><strong>Estado:</strong> {{ detallesReserva.estado }}</div>
           <div><strong>Precio:</strong> {{ detallesReserva.precio }}</div>
+          <div>
+            <q-input
+              v-model="detallesReserva.descripcion"
+              label="Descripción"
+              outlined
+              dense
+              type="textarea"
+              rows="3"
+            />
+          </div>
         </q-card-section>
 
         <q-card-actions align="right">
+          <q-btn flat label="Guardar Descripción" color="primary" @click="guardarDescripcion" />
           <q-btn flat label="Cerrar" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -500,6 +511,7 @@ export default {
           fecha_entrada,
           fecha_salida,
           tipo_r,
+          descripcion,
           clientes:cliente_id (
             documento_identidad,
             nombres,
@@ -532,6 +544,7 @@ export default {
           fecha_entrada: reserva.fecha_entrada,
           fecha_salida: reserva.fecha_salida,
           tipo_r: reserva.tipo_r,
+          descripcion: reserva.descripcion || '',
           documento_identidad: reserva.clientes?.documento_identidad || '',
           nombres: reserva.clientes?.nombres || '',
           apellidos: reserva.clientes?.apellidos || '',
@@ -662,6 +675,38 @@ export default {
         fecha_salida: formatearFecha(reserva.fecha_salida), // Mostrar fecha de salida formateada
       }
       dialogoVisible.value = true
+    }
+
+    const guardarDescripcion = async () => {
+      try {
+        const { error } = await supabase
+          .from('reservas')
+          .update({ descripcion: detallesReserva.value.descripcion })
+          .eq('id', detallesReserva.value.id)
+
+        if (error) {
+          console.error('Error guardando descripción:', error)
+          this.$q.notify({
+            type: 'negative',
+            message: 'Error al guardar descripción',
+            icon: 'las la-times-circle',
+          })
+          return
+        }
+
+        this.$q.notify({
+          type: 'positive',
+          message: 'Descripción guardada exitosamente',
+          icon: 'las la-check-circle',
+        })
+      } catch (error) {
+        console.error('Error guardando descripción:', error)
+        this.$q.notify({
+          type: 'negative',
+          message: 'Error al guardar descripción',
+          icon: 'las la-times-circle',
+        })
+      }
     }
 
     const abrirDialogoCancelar = (reserva) => {
@@ -961,6 +1006,7 @@ export default {
       totalPrecio,
       marcarPernoctacion,
       descargarExcel,
+      guardarDescripcion,
     }
   },
 }
