@@ -145,6 +145,15 @@
               option-value="id"
               outlined
               dense
+              @update:model-value="actualizarPrecioEditar"
+            />
+            <q-input
+              v-model="habitacionSeleccionada.precio"
+              label="Precio"
+              outlined
+              dense
+              prepend-icon="las la-money-bill-wave"
+              readonly
             />
             <q-card-actions align="right">
               <q-btn flat label="Cancelar" color="primary" v-close-popup />
@@ -273,7 +282,11 @@ export default {
     }
 
     const abrirDialogoEditar = (habitacion) => {
-      habitacionSeleccionada.value = { ...habitacion }
+      habitacionSeleccionada.value = {
+        ...habitacion,
+        tipo_habitacion_id: habitacion.tipo_habitacion_id, // Asegurarse de que el tipo de habitación sea el ID
+      }
+      actualizarPrecioEditar(habitacion.tipo_habitacion_id) // Actualizar el precio al abrir el diálogo
       dialogoEditarVisible.value = true
     }
 
@@ -353,25 +366,6 @@ export default {
           $q.notify({
             type: 'negative',
             message: 'Error al editar habitación',
-            icon: 'las la-times-circle',
-          })
-          return
-        }
-
-        const { error: tipoHabitacionError } = await supabase
-          .from('tipos_habitacion')
-          .update({ precio: habitacionSeleccionada.value.precio })
-          .eq(
-            'id',
-            habitacionSeleccionada.value.tipo_habitacion_id.id ||
-              habitacionSeleccionada.value.tipo_habitacion_id,
-          ) // Asegurarse de enviar solo el ID
-
-        if (tipoHabitacionError) {
-          console.error('Error editando tipo de habitación:', tipoHabitacionError)
-          $q.notify({
-            type: 'negative',
-            message: 'Error al editar tipo de habitación',
             icon: 'las la-times-circle',
           })
           return
@@ -502,6 +496,13 @@ export default {
       }
     }
 
+    const actualizarPrecioEditar = (tipoHabitacionId) => {
+      const tipoHabitacion = tiposHabitacion.value.find((tipo) => tipo.id === tipoHabitacionId)
+      if (tipoHabitacion) {
+        habitacionSeleccionada.value.precio = tipoHabitacion.precio
+      }
+    }
+
     const filteredHabitaciones = computed(() => {
       if (!search.value) {
         return habitaciones.value
@@ -539,6 +540,7 @@ export default {
       inhabilitarHabitacion,
       rehabilitarHabitacion,
       actualizarPrecio,
+      actualizarPrecioEditar,
     }
   },
 }

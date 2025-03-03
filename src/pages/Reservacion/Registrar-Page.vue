@@ -201,11 +201,7 @@
       </q-form>
     </q-card>
 
-    <q-dialog
-      v-model="dialogoHabitacionesVisible"
-      persistent
-      @click-outside="cerrarDialogoHabitaciones"
-    >
+    <q-dialog v-model="dialogoHabitacionesVisible" @click-outside="cerrarDialogoHabitaciones">
       <q-card class="q-dialog-plugin q-dialog-plugin--wider q-dialog-plugin--extra-wide">
         <q-card-section>
           <div class="text-h6">Seleccionar Habitación</div>
@@ -425,6 +421,26 @@ export default {
       }
     },
     async registrar() {
+      // Validar que todos los campos del cliente y la habitación estén completos
+      if (
+        !this.cliente.dni ||
+        !this.cliente.nombres ||
+        !this.cliente.apellidos ||
+        !this.cliente.nacimiento ||
+        !this.cliente.sexo ||
+        !this.cliente.nacionalidad ||
+        !this.cliente.procedencia ||
+        !this.cliente.ocupacion ||
+        !this.habitacion.numero_habitacion
+      ) {
+        this.$q.notify({
+          type: 'negative',
+          message: 'Por favor, complete todos los campos del cliente y seleccione una habitación.',
+          icon: 'las la-exclamation-triangle',
+        })
+        return
+      }
+
       try {
         const nacionalidadId = this.cliente.nacionalidad?.id || null
         const procedenciaId = this.cliente.procedencia?.id || null
