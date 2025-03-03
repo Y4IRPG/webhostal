@@ -43,10 +43,11 @@
         <q-btn
           v-if="mostrarTodos"
           label="Descargar Excel"
-          color="primary"
+          color="green"
           flat
           class="q-ml-md"
           @click="descargarExcel"
+          icon="las la-file-excel"
         />
       </q-card-section>
 
