@@ -40,6 +40,14 @@
           class="q-ml-md"
           @click="limpiarFiltros"
         />
+        <q-btn
+          v-if="mostrarTodos"
+          label="Descargar Excel"
+          color="primary"
+          flat
+          class="q-ml-md"
+          @click="descargarExcel"
+        />
       </q-card-section>
 
       <q-card-section>
@@ -386,6 +394,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from 'src/services/supabase'
 import { actualizarHabitacionesDisponibles } from 'src/utils/filtrarHabitaciones'
+import * as XLSX from 'xlsx'
 
 export default {
   setup() {
@@ -875,6 +884,29 @@ export default {
       selectedDate.value = new Date().toISOString().substr(0, 10)
     }
 
+    const descargarExcel = () => {
+      const data = reservasAgrupadas.value.map((reserva) => ({
+        'N° Documento': reserva.documento_identidad,
+        Nombres: reserva.nombres,
+        Apellidos: reserva.apellidos,
+        Nacionalidad: reserva.nacionalidad,
+        Procedencia: reserva.procedencia,
+        Ocupación: reserva.ocupacion,
+        'Tipo de Habitación': reserva.tipo_habitacion,
+        'Número de Habitación': reserva.numero_habitacion,
+        'Fecha de Reserva': reserva.fecha_reserva,
+        'Fecha de Entrada': reserva.fecha_entrada,
+        'Fecha de Salida': reserva.fecha_salida,
+        Estado: reserva.estado,
+        Precio: reserva.precio,
+      }))
+
+      const worksheet = XLSX.utils.json_to_sheet(data)
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Reportes')
+      XLSX.writeFile(workbook, 'reportes.xlsx')
+    }
+
     onMounted(async () => {
       await fetchReservas()
       await actualizarEstados()
@@ -927,6 +959,7 @@ export default {
       limpiarFiltros,
       totalPrecio,
       marcarPernoctacion,
+      descargarExcel,
     }
   },
 }
